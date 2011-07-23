@@ -70,15 +70,19 @@ if ($_REQUEST["content_type"]) {
 
 header("Content-type: " . $contentType);
 
+$body = $res->getBody();
+
 if ($_REQUEST["absolute"]) {
-    $body = $res->getBody();
     $body = preg_replace_callback(
         '/\b(src|href)=(["\']?)(.*?)\2/i',
         create_function('$matches',
                         'global $url; return $matches[1] . "=" . $matches[2] . rel2abs($matches[3], $url) . $matches[2];'),
         $body
     );
-    echo $body;
-} else {
-    echo $res->getBody();
 }
+
+if ($_REQUEST["from_encoding"] && $_REQUEST["to_encoding"]) {
+    $body = mb_convert_encoding($body, $_REQUEST["to_encoding"], $_REQUEST["from_encoding"]);
+}
+
+echo $body;
