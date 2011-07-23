@@ -4,8 +4,13 @@ require_once 'HTTP/Request2.php';
 define('MAX_REDIRECTS', 3);
 $redirects = 0;
 
-$url = $_REQUEST["url"];
-$referer = $_REQUEST["referer"];
+if (array_key_exists('url', $_REQUEST))
+    $url = $_REQUEST["url"];
+else
+    exit;
+
+if (array_key_exists('referer', $_REQUEST))
+    $referer = $_REQUEST["referer"];
 
 function rel2abs($rel, $base)
 {
@@ -13,7 +18,7 @@ function rel2abs($rel, $base)
     if (parse_url($rel, PHP_URL_SCHEME) != '') return $rel;
 
     /* queries and anchors */
-    if ($rel[0]=='#' || $rel[0]=='?') return $base.$rel;
+    if (strlen($rel) > 0 && ($rel[0]=='#' || $rel[0]=='?')) return $base.$rel;
 
     /* parse base URL and convert to local variables:
        $scheme, $host, $path */
@@ -23,7 +28,7 @@ function rel2abs($rel, $base)
     $path = preg_replace('#/[^/]*$#', '', $path);
 
     /* destroy path if relative url points to root */
-    if ($rel[0] == '/') $path = '';
+    if (strlen($rel) > 0 && ($rel[0] == '/')) $path = '';
 
     /* dirty absolute URL */
     $abs = "$host$path/$rel";
@@ -39,7 +44,7 @@ function rel2abs($rel, $base)
 function send_request()
 {
     global $url, $referer;
-    if ($referer) {
+    if (isset($referer)) {
         $request->setHeader('Referer', $referer);
     }
     $req = new HTTP_Request2($url);
@@ -62,7 +67,7 @@ function send_request()
 
 $res = send_request($url);
 
-if ($_REQUEST["content_type"]) {
+if (array_key_exists('content_type', $_REQUEST)) {
     $contentType = $_REQUEST["content_type"];
 } else {
     $contentType = $res->getHeader('content-type');
@@ -72,7 +77,7 @@ header("Content-type: " . $contentType);
 
 $body = $res->getBody();
 
-if ($_REQUEST["absolute"]) {
+if (array_key_exists('absolute', $_REQUEST)) {
     $body = preg_replace_callback(
         '/\b(src|href)=(["\']?)(.*?)\2/i',
         create_function('$matches',
@@ -81,7 +86,7 @@ if ($_REQUEST["absolute"]) {
     );
 }
 
-if ($_REQUEST["from_encoding"] && $_REQUEST["to_encoding"]) {
+if (array_key_exists('from_encoding', $_REQUEST) && array_key_exists('to_encoding', $_REQUEST)) {
     $body = mb_convert_encoding($body, $_REQUEST["to_encoding"], $_REQUEST["from_encoding"]);
 }
 
