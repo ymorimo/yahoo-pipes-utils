@@ -43,7 +43,7 @@ function rel2abs($rel, $base)
 
 function send_request()
 {
-    global $url, $referer;
+    global $url, $referer, $redirects;
     $req = new HTTP_Request2($url);
     if (isset($referer)) {
         $req->setHeader('Referer', $referer);
@@ -60,6 +60,8 @@ function send_request()
     if (floor($res->getStatus() / 100) == 3 && $res->getHeader('location') && $redirects++ < MAX_REDIRECTS) {
         $url = $res->getHeader('location');
         $res = send_request($url);
+    } else {
+        die('Reached Max Redirects: ' . MAX_REDIRECTS);
     }
 
     return $res;
