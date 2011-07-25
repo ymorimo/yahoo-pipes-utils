@@ -44,10 +44,10 @@ function rel2abs($rel, $base)
 function send_request()
 {
     global $url, $referer;
-    if (isset($referer)) {
-        $request->setHeader('Referer', $referer);
-    }
     $req = new HTTP_Request2($url);
+    if (isset($referer)) {
+        $req->setHeader('Referer', $referer);
+    }
 
     try {
         $res = $req->send();
