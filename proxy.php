@@ -57,11 +57,13 @@ function send_request()
         die($e->getMessage());
     }
 
-    if (floor($res->getStatus() / 100) == 3 && $res->getHeader('location') && $redirects++ < MAX_REDIRECTS) {
-        $url = $res->getHeader('location');
-        $res = send_request($url);
-    } else {
-        die('Reached Max Redirects: ' . MAX_REDIRECTS);
+    if (floor($res->getStatus() / 100) == 3 && $res->getHeader('location')) {
+        if ($redirects++ < MAX_REDIRECTS) {
+            $url = $res->getHeader('location');
+            $res = send_request($url);
+        } else {
+            die('Reached Max Redirects: ' . MAX_REDIRECTS);
+        }
     }
 
     return $res;
